@@ -1,3 +1,5 @@
+from google.appengine.api import app_identity
+
 # Base32 encode into a shuffled alphabet
 _i2a = [ 's', '5', 'u', 'x', 'n', 'q', '2', 'j', 't', 'y', '4', 'p', 'l',
          'g', 'e', 'r', 'k', '1', 'z', 'a', 'f', 'w', 'h', '3', 'v', 'i',
@@ -27,7 +29,8 @@ _address_prefix = 'r.'
 
 import os
 def mail_domain():
-    app_id = os.environ.get('APPLICATION_ID', '')
+    #app_id = os.environ.get('APPLICATION_ID', '')
+    app_id =  app_identity.get_application_id()
     return '%s.appspotmail.com' % app_id
 
 def from_field( addr ):
