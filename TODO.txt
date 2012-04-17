@@ -1,3 +1,9 @@
+(Anjul)
+- text/csv dump mode for backup
+- repeating reminders
+- better parsing
+
+(jrk)
 - Accelerate cron task
 - Improve parsing heuristics: only split at _last_ in/at token
 - Put logging into parse-failed path
