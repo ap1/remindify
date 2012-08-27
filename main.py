@@ -22,6 +22,7 @@ def notify(user, text, title, link=None):
     #urlfetch.fetch('http://api.notify.io/v1/notify/%s?api_key=%s' % (hashlib.md5(user.email()).hexdigest(), key.api_key), method='POST', payload=urllib.urlencode(params))
     # TODO: update to send mail, with untique address per-reminder
 
+# TODO: set the following to false for release
 enable_registration = False
 class MainHandler(webapp.RequestHandler):
     def get(self):
