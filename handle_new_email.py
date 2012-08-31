@@ -6,6 +6,15 @@ from google.appengine.api import mail
 from google.appengine.api.urlfetch import fetch
 from models import *
 
+def get_word(text):
+    words = text.split()
+    characters = -1
+    for word in words:
+        characters += len(word)
+        if characters >= 0:
+            return word
+
+
 class NewPingHandler(InboundMailHandler):
     def receive(self, msg):
         logging.info( "New handler received a message from %s at %s" % ( msg.sender, msg.date ) )
@@ -38,9 +47,14 @@ class NewPingHandler(InboundMailHandler):
         failedCmds = []
         
         for cmd in cmds:
-            reminder = create_reminder( cmd, acct.tz, acct.user )
-            if not reminder:
-                failedCmds.append( cmd )
+            # try dump first
+            if cmd=="!dump":
+                send_dump( msg, acct.tz, acct.user )
+            else:
+                # if failed, try reminder
+                reminder = create_reminder( cmd, acct.tz, acct.user )
+                if not reminder:
+                    failedCmds.append( cmd )
         
         if failedCmds:
             errMsg = 'I failed to parse the following commands:\n\n%s' % '\n\n'.join( failedCmds )

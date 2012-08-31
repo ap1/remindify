@@ -22,6 +22,17 @@ def parse_time(tz, text):
             logging.info( 'TimeAPI fetch failed with "%s"' % str(e) )
     
 
+def send_dump( msg, tz, user ):
+    try:
+        msgbody = "All your reminders:\n"
+        mail.send_mail( sender='p', to=msg.sender,
+                        subject='Re: '+ msg.subject,
+                        body=msgbody)
+        logging.info ( 'Sent dump for request "%s"' % s )        
+    except:
+        logging.error( 'Failed to send dump for request "%s"' % s )
+    
+
 def create_reminder( s, tz, user ):
     try:
         reminder = Reminder( parse=s, timezone=tz, user=user )
