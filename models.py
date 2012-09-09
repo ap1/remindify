@@ -1,6 +1,8 @@
 from google.appengine.ext import db
 from google.appengine.api import urlfetch
 from google.appengine.api import mail
+from dateutil.tz import gettz, tzutc
+from timezones import TimeZone
 import urllib
 from dateutil import parser
 import logging
@@ -22,15 +24,26 @@ def parse_time(tz, text):
             logging.info( 'TimeAPI fetch failed with "%s"' % str(e) )
     
 
-def send_dump( msg, tz, user ):
+def format_datetime( dt, tz ):
+    date_format = '%A, %B %d at %I:%M %p'
+    return dt.replace(tzinfo=tzutc()).astimezone( TimeZone[ tz ] ).strftime( date_format )
+
+def send_agenda( msg, tz, user ):
     try:
-        msgbody = "All your reminders:\n"
-        mail.send_mail( sender='p', to=msg.sender,
+        account = Account.all().filter('user =', user).fetch(2)[0]
+        msgbody = "All your unfired reminders:\n\n"
+        reminders = Reminder.all().filter('user = ', user)
+        reminders = [r for r in reminders if not r.fired]
+        for (idx,reminder) in enumerate(reminders):
+            created = format_datetime( reminder.created, account.tz )
+            scheduled = format_datetime( reminder.scheduled, account.tz )
+            msgbody = msgbody + "\t%d. \"%s\"\n\tcreated: %s\n\tscheduled: %s\n\n" % ( (idx+1), reminder.raw, created, scheduled )
+        mail.send_mail( sender=from_field('p'), to=msg.sender,
                         subject='Re: '+ msg.subject,
                         body=msgbody)
-        logging.info ( 'Sent dump for request "%s"' % s )        
+        logging.info ( 'Sent agenda for request "%s"' % msg.subject )        
     except:
-        logging.error( 'Failed to send dump for request "%s"' % s )
+        logging.error( 'Failed to send agenda for request "%s"' % msg.subject )
     
 
 def create_reminder( s, tz, user ):

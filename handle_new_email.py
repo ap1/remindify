@@ -47,9 +47,9 @@ class NewPingHandler(InboundMailHandler):
         failedCmds = []
         
         for cmd in cmds:
-            # try dump first
-            if cmd=="!dump":
-                send_dump( msg, acct.tz, acct.user )
+            # try agenda first
+            if cmd=="!agenda":
+                send_agenda( msg, acct.tz, acct.user )
             else:
                 # if failed, try reminder
                 reminder = create_reminder( cmd, acct.tz, acct.user )
