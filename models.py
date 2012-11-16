@@ -15,7 +15,8 @@ def parse_time(tz, text):
     max_tries = 3
     for _try in range(max_tries):
         try:
-            response = urlfetch.fetch('http://www.timeapi.org/%s/%s' % (tz.lower(), urllib.quote(text)))
+            #response = urlfetch.fetch('http://www.timeapi.org/%s/%s' % (tz.lower(), urllib.quote(text)))
+            response = urlfetch.fetch('http://chronic.herokuapp.com/%s/%s' % (tz.lower(), urllib.quote(text)))
             if response.status_code == 200:
                 return response.content
             elif response.status_code == 500:
