@@ -38,7 +38,7 @@ def send_agenda( msg, tz, user ):
         for (idx,reminder) in enumerate(reminders):
             created = format_datetime( reminder.created, account.tz )
             scheduled = format_datetime( reminder.scheduled, account.tz )
-            msgbody = msgbody + "\t%d. \"%s\"\n\tcreated: %s\n\tscheduled: %s\n\n" % ( (idx+1), reminder.raw, created, scheduled )
+            msgbody = msgbody + "\t%d. \"%s\"\n\tcreated: %s\n\tscheduled: %s\n\n" % ( (idx+1), reminder.text, created, scheduled )
         mail.send_mail( sender=from_field('p'), to=msg.sender,
                         subject='Re: '+ msg.subject,
                         body=msgbody)
