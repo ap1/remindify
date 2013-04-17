@@ -48,8 +48,12 @@ class NewPingHandler(InboundMailHandler):
         
         for cmd in cmds:
             # try agenda first
-            if cmd=="!agenda":
+            if cmd == "!agenda":
+                # Send all reminders
                 send_agenda( msg, acct.tz, acct.user )
+            elif cmd == "!today":
+                # Send reminders scheduled for today
+                send_agenda_today( msg, acct.tz, acct.user )
             else:
                 # if failed, try reminder
                 reminder = create_reminder( cmd, acct.tz, acct.user )
