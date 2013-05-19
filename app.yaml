@@ -1,6 +1,6 @@
 application: killerooping
 # TODO: set the following line correctly
-version: 2012-11-15-main
+version: 2013-05-18-test
 runtime: python
 api_version: 1
 

@@ -2,6 +2,8 @@ from google.appengine.ext import db
 from google.appengine.api import urlfetch
 from google.appengine.api import mail
 from dateutil.tz import gettz, tzutc
+from datetime import datetime
+from datetime import timedelta
 from timezones import TimeZone
 import urllib
 from dateutil import parser
@@ -46,6 +48,22 @@ def send_agenda( msg, tz, user ):
     except:
         logging.error( 'Failed to send agenda for request "%s"' % msg.subject )
     
+def send_agenda_today( msg, tz, user ):
+    try:
+        account = Account.all().filter('user =', user).fetch(2)[0]
+        msgbody = "Next 24 hours:\n\n"
+        reminders = Reminder.all().filter('user = ', user)
+        reminders = [r for r in reminders if not r.fired and r.scheduled <= (datetime.now() + timedelta(hours=24))]
+        for (idx,reminder) in enumerate(reminders):
+            created = format_datetime( reminder.created, account.tz )
+            scheduled = format_datetime( reminder.scheduled, account.tz )
+            msgbody = msgbody + "\t%d. \"%s\"\n\tcreated: %s\n\tscheduled: %s\n\n" % ( (idx+1), reminder.text, created, scheduled )
+        mail.send_mail( sender=from_field('p'), to=msg.sender,
+                        subject='Re: '+ msg.subject,
+                        body=msgbody)
+        logging.info ( 'Sent agenda for request "%s"' % msg.subject )        
+    except:
+        logging.error( 'Failed to send agenda for request "%s"' % msg.subject )
 
 def create_reminder( s, tz, user ):
     try:
