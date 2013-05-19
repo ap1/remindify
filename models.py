@@ -28,7 +28,7 @@ def parse_time(tz, text):
     
 
 def format_datetime( dt, tz ):
-    date_format = '%A, %B %d at %I:%M %p'
+    date_format = '%A, %B %d, %Y at %I:%M %p (%Z)'
     return dt.replace(tzinfo=tzutc()).astimezone( TimeZone[ tz ] ).strftime( date_format )
 
 def send_agenda( msg, tz, user ):
