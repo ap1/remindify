@@ -17,8 +17,8 @@ def parse_time(tz, text):
     max_tries = 3
     for _try in range(max_tries):
         try:
-            #response = urlfetch.fetch('http://www.timeapi.org/%s/%s' % (tz.lower(), urllib.quote(text)))
-            response = urlfetch.fetch('http://chronic.herokuapp.com/%s/%s' % (tz.lower(), urllib.quote(text)))
+            response = urlfetch.fetch('http://www.timeapi.org/%s/%s' % (tz.lower(), urllib.quote(text)))
+            #response = urlfetch.fetch('http://chronic.herokuapp.com/%s/%s' % (tz.lower(), urllib.quote(text)))
             if response.status_code == 200:
                 return response.content
             elif response.status_code == 500:
@@ -37,14 +37,17 @@ def send_agenda( msg, tz, user ):
         msgbody = "All your unfired reminders:\n\n"
         reminders = Reminder.all().filter('user = ', user)
         reminders = [r for r in reminders if not r.fired]
+        reminders = sorted(reminders, key = lambda rem: rem.scheduled)
         for (idx,reminder) in enumerate(reminders):
             created = format_datetime( reminder.created, account.tz )
             scheduled = format_datetime( reminder.scheduled, account.tz )
-            msgbody = msgbody + "\t%d. \"%s\"\n\tcreated: %s\n\tscheduled: %s\n\n" % ( (idx+1), reminder.text, created, scheduled )
+            #msgbody = msgbody + "\t%d. \"%s\"\n\tcreated: %s\n\tscheduled: %s\n\n" % ( (idx+1), reminder.text, created, scheduled )
+            #msgbody = msgbody + "\t%d. \"%s\" due %s\n" % ( (idx+1), reminder.text, scheduled )
+            msgbody = msgbody + "\t%d. %s: \"%s\"\n" % ( (idx+1), scheduled, reminder.text )
         mail.send_mail( sender=from_field('p'), to=msg.sender,
                         subject='Re: '+ msg.subject,
                         body=msgbody)
-        logging.info ( 'Sent agenda for request "%s"' % msg.subject )        
+        logging.info ( 'Sent agenda for request "%s" - system time %s' % (msg.subject, datetime.now()))
     except:
         logging.error( 'Failed to send agenda for request "%s"' % msg.subject )
     
@@ -54,14 +57,17 @@ def send_agenda_today( msg, tz, user ):
         msgbody = "Next 24 hours:\n\n"
         reminders = Reminder.all().filter('user = ', user)
         reminders = [r for r in reminders if not r.fired and r.scheduled <= (datetime.now() + timedelta(hours=24))]
+        reminders = sorted(reminders, key = lambda rem: rem.scheduled)
         for (idx,reminder) in enumerate(reminders):
             created = format_datetime( reminder.created, account.tz )
             scheduled = format_datetime( reminder.scheduled, account.tz )
-            msgbody = msgbody + "\t%d. \"%s\"\n\tcreated: %s\n\tscheduled: %s\n\n" % ( (idx+1), reminder.text, created, scheduled )
+            #msgbody = msgbody + "\t%d. \"%s\"\n\tcreated: %s\n\tscheduled: %s\n\n" % ( (idx+1), reminder.text, created, scheduled )
+            #msgbody = msgbody + "\t%d. \"%s\" due %s\n" % ( (idx+1), reminder.text, scheduled )
+            msgbody = msgbody + "\t%d. %s: \"%s\"\n" % ( (idx+1), scheduled, reminder.text )
         mail.send_mail( sender=from_field('p'), to=msg.sender,
                         subject='Re: '+ msg.subject,
                         body=msgbody)
-        logging.info ( 'Sent agenda for request "%s"' % msg.subject )        
+        logging.info ( 'Sent agenda for request "%s" - system time %s' % (msg.subject, datetime.now()))
     except:
         logging.error( 'Failed to send agenda for request "%s"' % msg.subject )
 
