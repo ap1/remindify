@@ -1,6 +1,5 @@
 (Anjul)
 - save email content (first N characters)
-- text/csv dump mode for backup
 - repeating reminders
 - better parsing (allow urls in reminder, for instance)
 
