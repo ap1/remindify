@@ -4,6 +4,7 @@ from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
 from google.appengine.ext.webapp.util import run_wsgi_app
 from models import *
 from encode import *
+import traceback
 import re
 
 reply_re = re.compile( '.*r\..+@%s' % mail_domain() )
@@ -65,11 +66,12 @@ class ReplyHandler(InboundMailHandler):
         try:
             r.parse_and_update( cmd.strip(), acct.tz )
             r.put()
-        except:
-            logging.info( 'Failed to parse update command %s' % cmd )
+        except Exception, e:
             mail.send_mail( sender=rcpt, to=msg.sender,
                             subject=reply_subject( msg.subject ),
                             body='I failed to perform the requested schedule update "%s"' % cmd )
+            logging.info( 'Failed to parse update command %s' % cmd )
+            logging.info( 'Exception: %s' % traceback.format_exc())
             return
     
 

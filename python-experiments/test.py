@@ -21,3 +21,9 @@ for  at in bts:
     print get_word(at)
     if get_word(at)=="mello":
         print "hey"
+    try:
+      print 7/0
+    except Exception as exc:
+      print '[E] %s' % exc
+
+    print 'done'
