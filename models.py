@@ -14,7 +14,7 @@ import time
 
 def parse_time(tz, text):
     # TODO: modify to parse send-date as well for relative time expressions
-    max_tries = 3
+    max_tries = 5
     for _try in range(max_tries):
         try:
             response = urlfetch.fetch('http://www.timeapi.org/%s/%s' % (tz.lower(), urllib.quote(text)))
@@ -23,8 +23,8 @@ def parse_time(tz, text):
                 return response.content
             elif response.status_code == 500:
                 logging.info( 'TimeAPI returned 500 on "%s"' % text )
-        except Exception(e):
-            logging.info( 'TimeAPI fetch failed with "%s"' % str(e) )
+        except Exception, e:
+          logging.info( 'TimeAPI try %d: fetch failed with "%s"' % (_try, str(e)) )
     
 
 def format_datetime( dt, tz ):
