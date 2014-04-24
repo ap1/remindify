@@ -11,21 +11,89 @@ import logging
 from encode import *
 import os
 import time
+import string
+from dateutil.relativedelta import *
 
-def parse_time(tz, text):
-    # TODO: modify to parse send-date as well for relative time expressions
-    max_tries = 5
-    for _try in range(max_tries):
-        try:
-            response = urlfetch.fetch('http://www.timeapi.org/%s/%s' % (tz.lower(), urllib.quote(text)))
-            #response = urlfetch.fetch('http://chronic.herokuapp.com/%s/%s' % (tz.lower(), urllib.quote(text)))
-            if response.status_code == 200:
-                return response.content
-            elif response.status_code == 500:
-                logging.info( 'TimeAPI returned 500 on "%s"' % text )
-        except Exception, e:
-          logging.info( 'TimeAPI try %d: fetch failed with "%s"' % (_try, str(e)) )
+def compute_delta_seconds(how_many):
+  datetime_now = datetime.utcnow()
+  return datetime_now + relativedelta(seconds = how_many)
+
+def compute_delta_minutes(how_many):
+  datetime_now = datetime.utcnow()
+  return datetime_now + relativedelta(minutes = how_many)
+
+def compute_delta_hours(how_many):
+  datetime_now = datetime.utcnow()
+  return datetime_now + relativedelta(hours = how_many)
+
+def compute_delta_days(how_many):
+  datetime_now = datetime.utcnow()
+  return datetime_now + relativedelta(days = how_many)
+
+def compute_delta_weeks(how_many):
+  datetime_now = datetime.utcnow()
+  return datetime_now + relativedelta(weeks = how_many)
+
+def compute_delta_months(how_many):
+  datetime_now = datetime.utcnow()
+  return datetime_now + relativedelta(months = how_many)
+
+def compute_delta_years(how_many):
+  datetime_now = datetime.utcnow()
+  return datetime_now + relativedelta(years = how_many)
+
+time_units = {
+  "second"  : compute_delta_seconds,
+  "seconds" : compute_delta_seconds,
+
+  "minute"  : compute_delta_minutes,
+  "minutes" : compute_delta_minutes,
+
+  "hour"    : compute_delta_hours,
+  "hours"   : compute_delta_hours,
+
+  "day"     : compute_delta_days,
+  "days"    : compute_delta_days,
+
+  "week"    : compute_delta_weeks,
+  "weeks"   : compute_delta_weeks,
+
+  "month"   : compute_delta_months,
+  "months"  : compute_delta_months,
+
+  "year"    : compute_delta_years,
+  "years"   : compute_delta_years,
+}
+
+
+# def parse_time(tz, text):
+#     # TODO: modify to parse send-date as well for relative time expressions
+#     max_tries = 5
+#     for _try in range(max_tries):
+#         try:
+#             response = urlfetch.fetch('http://www.timeapi.org/%s/%s' % (tz.lower(), urllib.quote(text)))
+#             #response = urlfetch.fetch('http://chronic.herokuapp.com/%s/%s' % (tz.lower(), urllib.quote(text)))
+#             if response.status_code == 200:
+#                 return response.content
+#             elif response.status_code == 500:
+#                 logging.info( 'TimeAPI returned 500 on "%s"' % text )
+#         except Exception, e:
+#           logging.info( 'TimeAPI try %d: fetch failed with "%s"' % (_try, str(e)) )
     
+
+def parse_delta_time(tz, delta_str):
+  try:
+    delta_str  = delta_str.strip()
+    delta_list = delta_str.split()
+
+    delta_val  = int(delta_list[0].strip())
+    delta_unit = delta_list[1].strip()
+
+    computed_datetime = time_units[delta_unit](delta_val)
+
+    return computed_datetime
+  except Exception, e:
+    logging.info( 'Error: "%s"' % (str(e)) )
 
 def format_datetime( dt, tz ):
     date_format = '%A, %B %d, %Y at %I:%M %p (%Z)'
@@ -76,44 +144,47 @@ def create_reminder( s, tz, user ):
         reminder = Reminder( parse=s, timezone=tz, user=user )
         reminder.put()
         return reminder
-    except:
-        logging.error( 'Failed to create Reminder for request "%s"' % s )
+    except Exception, e:
+        logging.error( 'Failed to create Reminder for request "%s": %s' % (s, str(e)) )
 
 class Reminder(db.Model):
     # TODO: replace user with account reference, to avoid needless queries
-    user = db.UserProperty(required=True)
-    raw = db.StringProperty(required=True)
-    text = db.StringProperty()
-    scheduled_raw = db.StringProperty()
-    scheduled = db.DateTimeProperty()
-    created = db.DateTimeProperty(auto_now_add=True)
-    updated = db.DateTimeProperty(auto_now=True)
-    fired = db.BooleanProperty(default=False)
+    user            = db.UserProperty(required=True)
+    raw             = db.StringProperty(required=True)
+    text            = db.StringProperty()
+    scheduled_raw   = db.StringProperty()
+    scheduled       = db.DateTimeProperty()
+    created         = db.DateTimeProperty(auto_now_add=True)
+    updated         = db.DateTimeProperty(auto_now=True)
+    fired           = db.BooleanProperty(default=False)
     #TODO: recurrence
     
     def __init__(self, *args, **kwargs):
         if 'parse' in kwargs:
-            kwargs['text'], kwargs['scheduled_raw'] = self.parse(kwargs['parse'], kwargs['timezone'])
-            kwargs['scheduled'] = parser.parse(kwargs['scheduled_raw'])
+            kwargs['text'], kwargs['scheduled_raw'], kwargs['scheduled'] = self.parse(kwargs['parse'], kwargs['timezone'])
+            #kwargs['scheduled'] = parser.parse(kwargs['scheduled_raw'])
             kwargs['raw'] = kwargs['parse']
         super(Reminder, self).__init__(*args, **kwargs)
     
-    def scheduled_local(self):
-        return parser.parse(self.scheduled_raw)
+    # def scheduled_local(self):
+    #     return parser.parse(self.scheduled_raw)
     
     def parse(self, raw, timezone):
-        ats = raw.split(' at ')
-        if len(ats) == 2:
-            return (ats[0], parse_time(timezone, 'at %s' % ats[1]))
+        # ats = raw.split(' at ')
+        # if len(ats) == 2:
+        #     return (ats[0], parse_time(timezone, 'at %s' % ats[1]))
         ins = raw.split(' in ')
-        if len(ins) == 2:
-            return (ins[0], parse_time(timezone, 'in %s' % ins[1]))
-        return raw, None
+        if len(ins) >= 2:
+            parsed_datetime = parse_delta_time(timezone, ins[-1])
+            parsed_raw = format_datetime(parsed_datetime, timezone)
+            return (" in ".join(ins[:-1]), parsed_raw, parsed_datetime)
+        return raw, None, None
     
     def parse_and_update(self, raw, timezone):
-        self.scheduled_raw = parse_time(timezone, raw)
+        text = (raw.strip().split("in "))[-1]
+        self.scheduled = parse_delta_time(timezone, text)
+        self.scheduled_raw = format_datetime(self.scheduled, timezone)
         logging.info( 'parse_and_update returned raw: ' + str(self.scheduled_raw) )
-        self.scheduled = self.scheduled_local()
         self.fired = False
     
 

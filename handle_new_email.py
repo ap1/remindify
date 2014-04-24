@@ -56,9 +56,12 @@ class NewPingHandler(InboundMailHandler):
                 send_agenda_today( msg, acct.tz, acct.user )
             else:
                 # if failed, try reminder
-                reminder = create_reminder( cmd, acct.tz, acct.user )
-                if not reminder:
-                    failedCmds.append( cmd )
+                try:
+                    reminder = create_reminder( cmd, acct.tz, acct.user )
+                    if not reminder:
+                        failedCmds.append( cmd )
+                except Exception, e:
+                    logging.info( 'Creating reminder failed: "%s"' % (str(e)) )
         
         if failedCmds:
             errMsg = 'I failed to parse the following commands:\n\n%s' % '\n\n'.join( failedCmds )
