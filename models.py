@@ -6,7 +6,7 @@ from datetime import datetime
 from datetime import timedelta
 from timezones import TimeZone
 import urllib
-from dateutil import parser
+#from dateutil import parser
 import logging
 from encode import *
 import os
@@ -173,16 +173,22 @@ class Reminder(db.Model):
         # ats = raw.split(' at ')
         # if len(ats) == 2:
         #     return (ats[0], parse_time(timezone, 'at %s' % ats[1]))
-        ins = raw.split(' in ')
-        if len(ins) >= 2:
-            parsed_datetime = parse_delta_time(timezone, ins[-1])
+        # ins = raw.split(' in ')
+        in_pos = raw.strip().rfind(" in ")
+        remmsg = raw[:in_pos]
+        delta_str = raw[(in_pos+4):]
+        if in_pos >= 0:
+            parsed_datetime = parse_delta_time(timezone, delta_str)
             parsed_raw = format_datetime(parsed_datetime, timezone)
-            return (" in ".join(ins[:-1]), parsed_raw, parsed_datetime)
+            return (remmsg, parsed_raw, parsed_datetime)
         return raw, None, None
     
     def parse_and_update(self, raw, timezone):
-        text = (raw.strip().split("in "))[-1]
-        self.scheduled = parse_delta_time(timezone, text)
+        #text = (raw.strip().split("in "))[-1]
+        in_pos = raw.strip().find("in ")
+        remmsg = raw[:in_pos]
+        delta_str = raw[(in_pos+3):]
+        self.scheduled = parse_delta_time(timezone, delta_str)
         self.scheduled_raw = format_datetime(self.scheduled, timezone)
         logging.info( 'parse_and_update returned raw: ' + str(self.scheduled_raw) )
         self.fired = False

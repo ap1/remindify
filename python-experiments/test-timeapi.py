@@ -16,6 +16,7 @@ inputs = [
   "come back in 17 months",
   "do other stuff http://idav.ucdavis.edu/~anjul/ in 1 year",
   "put water in  in in in pot in   2   weeks",
+  "in in in in in 10 minutes"
 ]
 
 def compute_delta_seconds(how_many):
@@ -71,10 +72,32 @@ time_units = {
 
 #print datetime_now
 
+# def parse_delta_time(tz, delta_str):
+#   try:
+#     delta_str  = delta_str.strip()
+#     delta_list = delta_str.split()
+
+#     delta_val  = int(delta_list[0].strip())
+#     delta_unit = delta_list[1].strip()
+
+#     computed_datetime = time_units[delta_unit](delta_val)
+
+#     return computed_datetime
+#   except Exception, e:
+
+
 for remstr in inputs:
   splitlist = remstr.split(" in ")
-  remmsg = " in ".join(splitlist[:-1])
-  delta_str = splitlist[-1].strip()
+
+
+  #print "(%s) (%s)" %(remstr[:in_pos], remstr[(in_pos+4):])
+
+  in_pos = remstr.rfind(" in ")
+  remmsg = remstr[:in_pos]
+  delta_str = remstr[(in_pos+4):]
+
+  # remmsg = " in ".join(splitlist[:-1])
+  # delta_str = splitlist[-1].strip()
   print "%s =>\n\t[%s]\n\t%s" % (remstr, remmsg, delta_str)
 
   delta_str = delta_str.strip()
