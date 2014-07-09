@@ -166,32 +166,32 @@ class Reminder(db.Model):
             kwargs['raw'] = kwargs['parse']
         super(Reminder, self).__init__(*args, **kwargs)
     
-    # def scheduled_local(self):
-    #     return parser.parse(self.scheduled_raw)
-    
     def parse(self, raw, timezone):
-        # ats = raw.split(' at ')
-        # if len(ats) == 2:
-        #     return (ats[0], parse_time(timezone, 'at %s' % ats[1]))
-        # ins = raw.split(' in ')
         in_pos = raw.strip().rfind(" in ")
-        remmsg = raw[:in_pos]
-        delta_str = raw[(in_pos+4):]
         if in_pos >= 0:
+            remmsg = raw[:in_pos]
+            delta_str = raw[(in_pos+4):]
             parsed_datetime = parse_delta_time(timezone, delta_str)
             parsed_raw = format_datetime(parsed_datetime, timezone)
             return (remmsg, parsed_raw, parsed_datetime)
-        return raw, None, None
+        else:
+            logging.error("Cannot find *in* in your reminder!\n")
+            raise Exception("Cannot find *in* in your reminder!\n")
+            return raw, None, None
     
     def parse_and_update(self, raw, timezone):
-        #text = (raw.strip().split("in "))[-1]
         in_pos = raw.strip().find("in ")
-        remmsg = raw[:in_pos]
-        delta_str = raw[(in_pos+3):]
-        self.scheduled = parse_delta_time(timezone, delta_str)
-        self.scheduled_raw = format_datetime(self.scheduled, timezone)
-        logging.info( 'parse_and_update returned raw: ' + str(self.scheduled_raw) )
-        self.fired = False
+        if in_pos >= 0:
+            remmsg = raw[:in_pos]
+            delta_str = raw[(in_pos+3):]
+            self.scheduled = parse_delta_time(timezone, delta_str)
+            self.scheduled_raw = format_datetime(self.scheduled, timezone)
+            logging.info( 'parse_and_update returned raw: ' + str(self.scheduled_raw) )
+            self.fired = False
+        else:
+            logging.error("Cannot find *in* in your reminder!\n")
+            raise Exception("Cannot find *in* in your reminder!\n")
+            return raw, None, None
     
 
 def account_for_sender( sender ):
