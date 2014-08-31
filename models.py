@@ -167,7 +167,7 @@ class Reminder(db.Model):
         super(Reminder, self).__init__(*args, **kwargs)
     
     def parse(self, raw, timezone):
-        in_pos = raw.strip().rfind(" in ")
+        in_pos = raw.strip().lower().rfind(" in ")
         if in_pos >= 0:
             remmsg = raw[:in_pos]
             delta_str = raw[(in_pos+4):]
@@ -180,7 +180,7 @@ class Reminder(db.Model):
             return raw, None, None
     
     def parse_and_update(self, raw, timezone):
-        in_pos = raw.strip().find("in ")
+        in_pos = raw.strip().lower().find("in ")
         if in_pos >= 0:
             remmsg = raw[:in_pos]
             delta_str = raw[(in_pos+3):]
